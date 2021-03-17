@@ -8,10 +8,6 @@ const morgan = require("morgan");
 const mongoose = require('mongoose');
 const api = process.env.API_URL;
 
-// const ejs = require("ejs");
-// const https = require("https");
-// app.set('view engine', 'ejs');
-
 
 //--------Middleware-----
 //middleware for parsing json objects
@@ -28,7 +24,17 @@ app.use(morgan("tiny"));
 const productsRouter=require("./routes/products.js")
 app.use(`${api}/products`, productsRouter);
 
+//Categories
+const categoriesRoutes = require('./routes/categories.js');
+app.use(`${api}/categories`, categoriesRoutes);
 
+//Users
+const usersRoutes = require('./routes/users.js');
+app.use(`${api}/users`, usersRoutes);
+
+//Orders
+const ordersRoutes = require('./routes/orders.js');
+app.use(`${api}/orders`, ordersRoutes);
 
 
 //DB connection
