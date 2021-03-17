@@ -3,4 +3,4 @@ const categorySchema = {
 
 };
 
-exports.Category = mongoose.model("Product", categorySchema);
+exports.Category = mongoose.model("Category", categorySchema);

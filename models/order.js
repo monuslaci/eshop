@@ -3,4 +3,4 @@ const orderSchema = {
 
 };
 
-exports.Order = mongoose.model("Product", orderSchema);
+exports.Order = mongoose.model("Order", orderSchema);
