@@ -4,7 +4,7 @@ const router=express.Router();
 
 router.get("/", async (req, res) => {
 
-    const orderList = await Product.find(); //just send the productList to the frontend once it is filled
+    const orderList = await Order.find(); //just send the productList to the frontend once it is filled
 
     if (!orderList) { //if there was a problem, and there is no product list
         res.status(500).json({

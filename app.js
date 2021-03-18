@@ -8,6 +8,10 @@ const morgan = require("morgan");
 const mongoose = require('mongoose');
 const api = process.env.API_URL;
 
+//Enable CORS
+const cors=require("cors");
+app.use(cors());
+app.options("*", cors());
 
 //--------Middleware-----
 //middleware for parsing json objects
@@ -21,19 +25,19 @@ app.use(morgan("tiny"));
 
 //------Routes------
 //Products
-const productsRouter=require("./routes/products.js")
+const productsRouter=require("./routes/products")
 app.use(`${api}/products`, productsRouter);
 
 //Categories
-const categoriesRoutes = require('./routes/categories.js');
+const categoriesRoutes = require("./routes/categories");
 app.use(`${api}/categories`, categoriesRoutes);
 
 //Users
-const usersRoutes = require('./routes/users.js');
+const usersRoutes = require("./routes/users");
 app.use(`${api}/users`, usersRoutes);
 
 //Orders
-const ordersRoutes = require('./routes/orders.js');
+const ordersRoutes = require("./routes/orders");
 app.use(`${api}/orders`, ordersRoutes);
 
 
