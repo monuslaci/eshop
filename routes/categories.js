@@ -73,9 +73,9 @@ router.put("/:id", async (req, res) => {
     );
 
     if (!category) { //if there was a problem, and there is no category 
-        res.status(400).json({
+        res.status(500).json({
             success: false,
-            message: "The category cannot be created."
+            message: "The category cannot be updated."
         });
     }
 

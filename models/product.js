@@ -57,4 +57,14 @@ const productSchema = mongoose.Schema({
     }
 })
 
+//create a virtual field called id from the field _id
+productSchema.virtual('id').get(function () {
+    return this._id.toHexString();
+});
+
+//enable the virtual field called id
+productSchema.set('toJSON', {
+    virtuals: true,
+});
+
 exports.Product = mongoose.model("Product", productSchema);
