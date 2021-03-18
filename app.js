@@ -7,6 +7,9 @@ app.use(express.static("public"));
 const morgan = require("morgan");
 const mongoose = require('mongoose');
 const api = process.env.API_URL;
+const authJwt = require('./helpers/jwt');
+const errorHandler = require('./helpers/error-handler');
+
 
 //Enable CORS
 const cors=require("cors");
@@ -21,6 +24,10 @@ app.use(bodyParser.urlencoded({
     extended: true
 }));
 app.use(morgan("tiny"));
+//with this any request will come will be asked authentication JWT -> express Jwt will decide if the user can use the api based on the token or not
+app.use(authJwt());
+//handle if there are any errors in authentication
+app.use(errorHandler);
 
 
 //------Routes------
