@@ -7,23 +7,37 @@ const {
 const express = require("express");
 const mongoose = require('mongoose');
 const router = express.Router();
+const multer=require("multer");
 
 
+//----------picture upload
+//specify the file types that are allowed to being uploaded
+const FILE_TYPE_MAP = {
+    'image/png': 'png',
+    'image/jpeg': 'jpeg',
+    'image/jpg': 'jpg'
+}
 
-//needs the async because it will have asynchronous operation -> it will need to wait for the results from the db
-// router.get("/", async (req, res) => {
-//     //when showing the results also show the category details connecting to the product
-//     const productList = await Product.find().populate("category"); //just send the productList to the frontend once it is filled
+//specify the destination and file naming options
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) { //contol of the destination
+        const isValid = FILE_TYPE_MAP[file.mimetype];
+        let uploadError = new Error('invalid image type');
 
-//     if (!productList) { //if there was a problem, and there is no product list
-//         res.status(500).json({
-//             success: false
-//         });
-//     }
-
-//     res.send(productList);
-
-// });
+        if(isValid) {
+            uploadError = null
+        }
+      cb(uploadError, 'public/uploads') //define the upload destination
+    },
+    filename: function (req, file, cb) { //contol of the filename
+        
+      const fileName = file.originalname.split(' ').join('-');
+      const extension = FILE_TYPE_MAP[file.mimetype]; //apply the extension restrictions
+      cb(null, `${fileName}-${Date.now()}.${extension}`)
+    }
+  })
+  
+const uploadOptions = multer({ storage: storage })
 
 
 //find based on category
@@ -98,16 +112,21 @@ router.get("/get/featured/:count", async (req, res) => {
 
 
 //post new product
-router.post("/", async (req, res) => {
+router.post("/", uploadOptions.single('image'), async (req, res) =>{ //need to pass the file upload option that was defined at the beginning of the file, "image": is the file name, it is sent from the frontend 
     //Check if the category exists or not
     const category = await Category.findById(req.body.category);
     if (!category) return res.status(400).send("Invalid category!");
 
+    const file = req.file;
+    if(!file) return res.status(400).send('No image in the request')
+
+    const fileName = file.filename;
+    const basePath = `${req.protocol}://${req.get('host')}/public/uploads/`;
     const product = new Product({
         name: req.body.name,
         description: req.body.description,
         richDescription: req.body.richDescription,
-        image: req.body.image,
+        image: `${basePath}${fileName}`, //add the full path of the image + the image name: "http://localhost:3000/public/uploads/image-2323232"
         brand: req.body.brand,
         price: req.body.price,
         category: req.body.category,
@@ -174,6 +193,39 @@ router.put("/:id", async (req, res) => {
 
 });
 
+
+
+router.put(
+    '/gallery-images/:id', 
+    uploadOptions.array('images', 10), //we will expect from the frontent an array of images, maximum 10 files
+    async (req, res)=> {
+        if(!mongoose.isValidObjectId(req.params.id)) {
+            return res.status(400).send('Invalid Product Id')
+         }
+         const files = req.files
+         let imagesPaths = [];
+         const basePath = `${req.protocol}://${req.get('host')}/public/uploads/`;
+
+         if(files) {
+            files.map(file =>{
+                imagesPaths.push(`${basePath}${file.filename}`);
+            })
+         }
+
+         const product = await Product.findByIdAndUpdate(
+            req.params.id,
+            {
+                images: imagesPaths
+            },
+            { new: true}
+        )
+
+        if(!product)
+            return res.status(500).send('the gallery cannot be updated!')
+
+        res.send(product);
+    }
+)
 
 
 router.delete("/:productId", async (req, res) => {
