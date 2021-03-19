@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 
 const orderSchema = mongoose.Schema({
+    //orderItem is an array of oderItem
     orderItems: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'OrderItem',

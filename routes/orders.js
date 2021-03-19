@@ -27,15 +27,17 @@ router.get(`/:id`, async (req, res) =>{
 })
 
 router.post('/', async (req,res)=>{
-    const orderItemsIds = Promise.all(req.body.orderItems.map(async (orderItem) =>{
-        let newOrderItem = new OrderItem({
+
+        //create the orderitems and attach them to the order
+    const orderItemsIds = Promise.all(req.body.orderItems.map(async (orderItem) =>{ //loop through the orderItems array which are sent from the user
+        let newOrderItem = new OrderItem({ //for every item in the orderItems create a new OrderItem 
             quantity: orderItem.quantity,
             product: orderItem.product
         })
 
-        newOrderItem = await newOrderItem.save();
+        newOrderItem = await newOrderItem.save(); //save each new order item to the database
 
-        return newOrderItem._id;
+        return newOrderItem._id; //we only want to use the id's, so return only the id of the new order item, this will connect the order to the order item in the OrderItem table
     }))
     const orderItemsIdsResolved =  await orderItemsIds;
 
@@ -64,75 +66,10 @@ router.post('/', async (req,res)=>{
     if(!order)
     return res.status(400).send('the order cannot be created!')
 
-    res.send(order);
+    res.send(order); //send the order to the frontend
 })
 
 
-router.put('/:id',async (req, res)=> {
-    const order = await Order.findByIdAndUpdate(
-        req.params.id,
-        {
-            status: req.body.status
-        },
-        { new: true}
-    )
-
-    if(!order)
-    return res.status(400).send('the order cannot be update!')
-
-    res.send(order);
-})
-
-
-router.delete('/:id', (req, res)=>{
-    Order.findByIdAndRemove(req.params.id).then(async order =>{
-        if(order) {
-            await order.orderItems.map(async orderItem => {
-                await OrderItem.findByIdAndRemove(orderItem)
-            })
-            return res.status(200).json({success: true, message: 'the order is deleted!'})
-        } else {
-            return res.status(404).json({success: false , message: "order not found!"})
-        }
-    }).catch(err=>{
-       return res.status(500).json({success: false, error: err}) 
-    })
-})
-
-router.get('/get/totalsales', async (req, res)=> {
-    const totalSales= await Order.aggregate([
-        { $group: { _id: null , totalsales : { $sum : '$totalPrice'}}}
-    ])
-
-    if(!totalSales) {
-        return res.status(400).send('The order sales cannot be generated')
-    }
-
-    res.send({totalsales: totalSales.pop().totalsales})
-})
-
-router.get(`/get/count`, async (req, res) =>{
-    const orderCount = await Order.countDocuments((count) => count)
-
-    if(!orderCount) {
-        res.status(500).json({success: false})
-    } 
-    res.send({
-        orderCount: orderCount
-    });
-})
-
-router.get(`/get/userorders/:userid`, async (req, res) =>{
-    const userOrderList = await Order.find({user: req.params.userid}).populate({ 
-        path: 'orderItems', populate: {
-            path : 'product', populate: 'category'} 
-        }).sort({'dateOrdered': -1});
-
-    if(!userOrderList) {
-        res.status(500).json({success: false})
-    } 
-    res.send(userOrderList);
-})
 
 
 
